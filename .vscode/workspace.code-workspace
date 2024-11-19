@@ -1,0 +1,103 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"editor.formatOnSave": true,
+		//* C
+		"C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0}",
+		"files.associations": {
+			"stdio.h": "c",
+			"stdlib.h": "c",
+			"windows.h": "c",
+			"runner.h": "c"
+		},
+		/**/
+		"terminal.integrated.copyOnSelection": true,
+		"terminal.integrated.enableMultiLinePasteWarning": "never",
+		"terminal.integrated.gpuAcceleration": "on",
+		"terminal.integrated.hideOnStartup": "always",
+		"terminal.integrated.suggest.enabled": true,
+		"terminal.integrated.suggest.builtinCompletions": {
+			"pwshCode": true,
+			"pwshGit": true
+		},
+		"terminal.integrated.tabs.focusMode": "singleClick",
+		/**/
+		/*
+		"workbench.statusBar.visible": false,
+j		*/
+		"workbench.editor.pinnedTabsOnSeparateRow": true,
+		"workbench.editor.tabActionCloseVisibility": false,
+		"workbench.editor.wrapTabs": true,
+		"workbench.editor.tabSizing": "shrink",
+		"zenMode.showTabs": "multiple",
+		"workbench.editor.labelFormat": "short",
+		"zenMode.hideLineNumbers": false,
+		"workbench.reduceMotion": "on",
+		"workbench.activityBar.location": "top",
+		"workbench.sideBar.location": "right",
+		"javascript.format.semicolons": "insert",
+		"files.autoSave": "afterDelay",
+		"files.autoSaveDelay": 100,
+		//* Font
+		"editor.fontFamily": "Fira Code",
+		"editor.fontLigatures": true,
+		"editor.fontSize": 16,
+		"workbench.colorCustomizations": {
+			"tab.activeBackground": "#010101",
+			"sideBar.background": "#0e0e0e",
+			"sideBar.foreground": "#fff",
+			"list.activeSelectionBackground": "#1c2f3d",
+			"tab.activeForeground": "#fff",
+			"tab.inactiveForeground": "#fff",
+			"tab.inactiveBackground": "#101010",
+			//* panel
+			"panel.background": "#111",
+			"terminal.foreground": "#fff",
+			"terminal.background": "#000",
+			"terminalCursor.foreground": "#1dab00",
+			//* Gutter
+			"editorLineNumber.foreground": "#fff",
+			"editorLineNumber.activeForeground": "#1dab00",
+			//* "editorGutter.background": "#101010",
+			"editorGutter.modifiedBackground": "#0ca4ff",
+			"editorGutter.addedBackground": "#1c921e",
+			"editorGutter.deletedBackground": "#ff000c",
+			"editorGutter.foldingControlForeground": "#fff",
+			//* Editor
+			"editorCursor.foreground": "#1dab00",
+			"editor.selectionBackground": "#264f7859",
+			"editor.inactiveSelectionBackground": "#3a3d4180",
+			"editor.background": "#010101",
+			"editor.foreground": "#fff",
+			"editorBracketMatch.border": "#000",
+			//* Suggestions Widget
+			"editorSuggestWidget.background": "#111",
+			"editorSuggestWidget.foreground": "#fff",
+			"editorSuggestWidget.highlightForeground": "#0099ff",
+			"editorSuggestWidget.selectedBackground": "#041b2a",
+			//* Hover Widget
+			"editorHoverWidget.foreground": "#fff",
+			"editorHoverWidget.background": "#111"
+		},
+		//* Vertical lines
+		"editor.rulers": [
+			{
+				"color": "#082f00",
+				"column": 80
+			},
+			{
+				"color": "#082f00",
+				"column": 100
+			}
+		],
+		//* Brackets
+		"editor.guides.bracketPairs": true,
+		"editor.guides.bracketPairsHorizontal": "active",
+		"editor.bracketPairColorization.enabled": true,
+		"editor.guides.highlightActiveBracketPair": true
+	}
+}
