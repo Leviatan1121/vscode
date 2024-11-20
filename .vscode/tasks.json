@@ -7,8 +7,17 @@
             "label": "Install All Recommended Extensions",
             "type": "shell",
             "windows": {
-                "command": "powershell -ExecutionPolicy Bypass -File .vscode/win.ps1"
-                //"command": "foreach ($ext in (Get-Content -Raw .vscode/extensions.json | ConvertFrom-Json).recommendations) { Write-Host Installing $ext; code --install-extension $ext; }"
+                "command": "if (Test-Path '.vscode/win.ps1') { . '.vscode/win.ps1' }",
+                "options": {
+                    "shell": {
+                        "executable": "powershell.exe",
+                        "args": [
+                            "-ExecutionPolicy",
+                            "Bypass",
+                            "-Command"
+                        ]
+                    }
+                }
             },
             "linux": {
                 "command": "cat .vscode/extensions.json | jq .recommendations[] | xargs -n 1 code . --install-extension"
@@ -20,6 +29,6 @@
                 "reveal": "silent"
             },
             "problemMatcher": []
-        },
+        }
     ]
 }
