@@ -1,11 +1,12 @@
 {
     "recommendations": [
+        //* COMMON
         "aaron-bond.better-comments", // Better Comments
         "AykutSarac.jsoncrack-vscode", // JSON Crack
         "ms-vscode.live-server", // Live Preview
         "PKief.material-icon-theme", // Material Icon Theme
         "alefragnani.project-manager", // Project Manager
-        "MS-CEINTL.vscode-language-pack-es", // Spanish
-        "Gruntfuggly.todo-tree", // Todo Tree
+        "MS-CEINTL.vscode-language-pack-es", //? Spanish
+        "Gruntfuggly.todo-tree" // Todo Tree
     ]
 }

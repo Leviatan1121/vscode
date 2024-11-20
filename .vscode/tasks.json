@@ -7,7 +7,7 @@
             "label": "Install All Recommended Extensions",
             "type": "shell",
             "windows": {
-                "command": "Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned;powershell .vscode/win.ps1"
+                "command": "powershell -ExecutionPolicy Bypass -File .vscode/win.ps1"
                 //"command": "foreach ($ext in (Get-Content -Raw .vscode/extensions.json | ConvertFrom-Json).recommendations) { Write-Host Installing $ext; code --install-extension $ext; }"
             },
             "linux": {

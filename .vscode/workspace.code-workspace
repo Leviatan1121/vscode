@@ -5,6 +5,7 @@
 		}
 	],
 	"settings": {
+		"workbench.colorTheme": "Default Dark Modern",
 		"editor.formatOnSave": true,
 		//* C
 		"C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0}",

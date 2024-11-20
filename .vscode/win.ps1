@@ -27,16 +27,16 @@ while ($true) {
         break
     }
 }
-
+$path=".vscode/ext"
 # Ejecutar la acción según la opción seleccionada
 switch ($options[$selectedIndex]) {
     "Tauri" {
-        Copy-Item "tauri-extensions.json" "extensions.json"
+        Copy-Item "$path-tauri.jsonc" "${path}ensions.json"
     }
     "Clang" {
-        Copy-Item ".vscode/clang-extensions.json" ".vscode/extensions.json"
+        Copy-Item "$path-clang.jsonc" "${path}ensions.json"
     }
     "Common" {
-        Copy-Item ".vscode/common-extensions.json" ".vscode/extensions.json"
+        Copy-Item "${path}.jsonc" "${path}ensions.json"
     }
 }
