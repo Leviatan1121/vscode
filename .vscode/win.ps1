@@ -110,9 +110,6 @@ if ($no_yes_options[$selectedIndex] -eq "Yes") {
         Where-Object { $_.Trim() -ne '' }  # Elimina líneas vacías
     ) -join "`n"
     
-    # Guardar el contenido en un archivo temporal para depuración
-    $jsonContent | Out-File -FilePath "debug_json.json"
-    
     try {
         $extensions = ($jsonContent | ConvertFrom-Json).recommendations
         
@@ -127,17 +124,11 @@ if ($no_yes_options[$selectedIndex] -eq "Yes") {
 }
 
 # 5) Preguntar por limpieza
-$selectedIndex = Select-Option -question "Delete unused files?" -menuOptions $no_yes_options
-if ($no_yes_options[$selectedIndex] -eq "Yes") {
+$selectedIndex = Select-Option -question "Delete unused files?" -menuOptions $yes_no_options
+if ($yes_no_options[$selectedIndex] -eq "Yes") {
     Write-Host "Deleting..."
-    # Eliminar la carpeta @extensions, archivos temporales y el propio script
-    if (Test-Path ".vscode/extensions") {
-        Remove-Item ".vscode/extensions" -Recurse -Force
-    }
-    if (Test-Path ".vscode/debug_json.json") {
-        Remove-Item ".vscode/debug_json.json" -Force
-    }
-    # Eliminar el script actual
+    # Eliminar la carpeta @extensions y el propio script
+    if (Test-Path ".vscode/extensions") { Remove-Item ".vscode/extensions" -Recurse -Force }
     $MyInvocation.MyCommand.Path | Remove-Item -Force
 }
 
