@@ -88,13 +88,20 @@ function Select-Multiple-Options {
 
 # Definir las opciones
 $ide_options = @("Cursor", "Visual Studio Code")
-$env_options = @("Tauri", "Clang", "Common")
+$env_options = Get-ChildItem -Path ".vscode/extensions" -Directory | 
+    Where-Object { Test-Path (Join-Path $_.FullName "extensions.json") } | 
+    Select-Object -ExpandProperty Name
+if ($env_options.Count -eq 0) {
+    Write-Host "No se encontraron carpetas con archivo extensions.json en .vscode/extensions"
+    exit
+}
 $yes_no_options = @("Yes", "No")
 $no_yes_options = @("No", "Yes")
 
 # 1) Selección del IDE
 $selectedIndex = Select-Option -question "What IDE are you using?" -menuOptions $ide_options
 $installCommand = $ide_options[$selectedIndex].ToLower()
+if ($installCommand -eq "visual studio code") { $installCommand = "code" }
 
 # 2) Selección de environments
 $selectedIndices = Select-Multiple-Options -question "Select extension packs (use Arrow keys to navigate):" -menuOptions $env_options
@@ -165,8 +172,8 @@ if ($no_yes_options[$selectedIndex] -eq "Yes") {
             Start-Process -FilePath $installCommand -ArgumentList "--install-extension", $ext -NoNewWindow -Wait;
         }
     } catch {
-        Write-Host "Error al procesar el JSON: $_"
-        Write-Host "Por favor, revisa el archivo debug_json.txt para ver el contenido"
+        Write-Host "Error al procesar el JSON: $_" -ForegroundColor Red
+        Write-Host "Contenido del JSON:`n$jsonContent"  
     }
 }
 
