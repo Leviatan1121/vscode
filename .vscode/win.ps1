@@ -39,6 +39,53 @@ function Select-Option {
     }
 }
 
+# Nueva función para selección múltiple con checkboxes
+function Select-Multiple-Options {
+    param (
+        [string]$question,
+        [string[]]$menuOptions
+    )
+    $selectedIndices = [System.Collections.ArrayList]@()
+    $currentIndex = 0
+    
+    while ($true) {
+        Clear-Host
+        Write-Host $question
+        for ($i = 0; $i -lt $menuOptions.Length; $i++) {
+            $prefix = if ($i -eq $currentIndex) { ">" } else { " " }
+            $checkbox = if ($selectedIndices -contains $i) { "[x]" } else { "[ ]" }
+            Write-Host "$prefix $checkbox $($menuOptions[$i])"
+        }
+        Write-Host "`n[Space] Select/Deselect  [Enter] Confirm  [Esc] Cancel"
+
+        $key = [Console]::ReadKey($true)
+
+        switch ($key.Key) {
+            "UpArrow" { 
+                $currentIndex = ($currentIndex - 1 + $menuOptions.Length) % $menuOptions.Length 
+            }
+            "DownArrow" { 
+                $currentIndex = ($currentIndex + 1) % $menuOptions.Length 
+            }
+            "Spacebar" {
+                if ($selectedIndices -contains $currentIndex) {
+                    $selectedIndices.Remove($currentIndex)
+                } else {
+                    [void]$selectedIndices.Add($currentIndex)
+                }
+            }
+            "Enter" {
+                if ($selectedIndices.Count -gt 0) {
+                    return $selectedIndices
+                }
+            }
+            "Escape" {
+                return @()
+            }
+        }
+    }
+}
+
 # Definir las opciones
 $ide_options = @("Cursor", "Visual Studio Code")
 $env_options = @("Tauri", "Clang", "Common")
@@ -50,13 +97,13 @@ $selectedIndex = Select-Option -question "What IDE are you using?" -menuOptions 
 $installCommand = $ide_options[$selectedIndex].ToLower()
 
 # 2) Selección de environments
-$selectedEnvironments = @()
-do {
-    $selectedIndex = Select-Option -question "Select the environment:" -menuOptions $env_options
-    $selectedEnvironments += $env_options[$selectedIndex].ToLower()
-    
-    $selectedIndex = Select-Option -question "Add another environment?" -menuOptions $no_yes_options
-} while ($no_yes_options[$selectedIndex] -eq "Yes")
+$selectedIndices = Select-Multiple-Options -question "Select extension packs (use Arrow keys to navigate):" -menuOptions $env_options
+if ($selectedIndices.Count -eq 0) {
+    Write-Host "Operation cancelled"
+    exit
+}
+
+$selectedEnvironments = @($selectedIndices | ForEach-Object { $env_options[$_].ToLower() })
 
 # 3) Crear archivo combinado
 $path = ".vscode/extensions"
