@@ -1,0 +1,18 @@
+﻿{
+    "recommendations": [
+        "aaron-bond.better-comments",
+        "alefragnani.project-manager",
+        "AykutSarac.jsoncrack-vscode",
+        "Gruntfuggly.todo-tree",
+        "MS-CEINTL.vscode-language-pack-es",
+        "ms-vscode.cmake-tools",
+        "ms-vscode.cpptools",
+        "ms-vscode.cpptools-extension-pack",
+        "ms-vscode.cpptools-themes",
+        "ms-vscode.live-server",
+        "PKief.material-icon-theme",
+        "rust-lang.rust-analyzer",
+        "tauri-apps.tauri-vscode",
+        "twxs.cmake"
+    ]
+}
