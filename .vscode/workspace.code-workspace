@@ -26,10 +26,9 @@
 			"pwshGit": true
 		},
 		"terminal.integrated.tabs.focusMode": "singleClick",
-		/**/
 		/*
 		"workbench.statusBar.visible": false,
-j		*/
+		*/
 		"workbench.editor.pinnedTabsOnSeparateRow": true,
 		"workbench.editor.tabActionCloseVisibility": false,
 		"workbench.editor.wrapTabs": true,

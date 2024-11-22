@@ -1,6 +1,8 @@
-$ORIGIN = "http://127.0.0.1:3000"
+$ORIGIN = "https://vscode.levihub.dev"
 # Obtener el contenido JSON desde la URL usando Invoke-RestMethod (irm)
 $env_options = irm "$ORIGIN/extensions.json"
+$combine_replace = @("Combine extensions", "Replace extensions")
+$yes_no = @("Yes", "No")
 
 # Iterar sobre cada elemento del array
 foreach ($extension in $env_options) {
@@ -37,6 +39,7 @@ function Select-Option {
     $selectedIndex = 0
     while ($true) {
         Show-Menu -question $question -menuOptions $menuOptions -selectedIndex $selectedIndex
+        Write-Host "`n[Arrows] Navigate  [Space] Select/Deselect  [Enter] Confirm  [Esc] Cancel"
         $key = [Console]::ReadKey($true)
 
         if ($key.Key -eq [ConsoleKey]::UpArrow) {
@@ -45,12 +48,14 @@ function Select-Option {
             $selectedIndex = ($selectedIndex + 1) % $menuOptions.Length
         } elseif ($key.Key -eq [ConsoleKey]::Enter) {
             return $selectedIndex
+        } elseif ($key.Key -eq [ConsoleKey]::Escape) {
+            return -1
         }
     }
 }
 
 # Nueva función para selección múltiple con checkboxes
-function Select-Multiple-Options {
+function Select-Multiple {
     param (
         [string]$question,
         [string[]]$menuOptions
@@ -66,7 +71,7 @@ function Select-Multiple-Options {
             $checkbox = if ($selectedIndices -contains $i) { "[x]" } else { "[ ]" }
             Write-Host "$prefix $checkbox $($menuOptions[$i])"
         }
-        Write-Host "`n[Space] Select/Deselect  [Enter] Confirm  [Esc] Cancel"
+        Write-Host "`n[Arrows] Navigate  [Space] Select/Deselect  [Enter] Confirm  [Esc] Cancel"
 
         $key = [Console]::ReadKey($true)
 
@@ -97,22 +102,52 @@ function Select-Multiple-Options {
 }
 
 # 2) Selección de environments
-$selectedIndices = Select-Multiple-Options -question "Select extension packs (use Arrow keys to navigate):" -menuOptions $env_options
-if ($selectedIndices.Count -eq 0) {
-    Write-Host "Operation cancelled"
-    exit
+$selectedIndexes = Select-Multiple -question "Select extension packs:" -menuOptions $env_options
+if ($selectedIndexes.Count -eq 0) {
+    Write-Host "`nOperation cancelled"
+    return
 }
 
-$selectedEnvironments = @($selectedIndices | ForEach-Object { $env_options[$_].ToLower() })
-Write-Host "Selected environments: $($selectedEnvironments -join ", ")"
+Clear-Host
+$selectedEnvironments = @($selectedIndexes | ForEach-Object { $env_options[$_].ToLower() })
 
 # 3) Crear archivo combinado
-$path = ".vscode/extensions"
 $combinedExtensions = @()
-if (!(Test-Path $path)) { New-Item -ItemType Directory -Force -Path $path | Out-Null }
 
+# Primero, verificar y cargar extensiones locales si existen
+$localExtensionsPath = ".vscode/extensions.json"
+if (Test-Path $localExtensionsPath) {
+    $selectedIndex = Select-Option -question "Local extensions file found.`nDo you want to combine or replace local extensions?" -menuOptions $combine_replace
+    Clear-Host
+    if ($selectedIndex -eq -1) {
+        Write-Host "`nOperation cancelled"
+        return
+    } elseif ($combine_replace[$selectedIndex] -eq "Combine extensions") {
+        try {
+            $localContent = (Get-Content $localExtensionsPath | 
+                Where-Object { $_ -notmatch '^\s*//.*' } |  # Elimina comentarios de línea completa
+                Where-Object { $_ -notmatch '/\*.*\*/' } |  # Elimina comentarios de bloque
+                ForEach-Object { $_ -replace '//.*$', '' } |  # Elimina comentarios al final de la línea
+                Where-Object { $_.Trim() -ne '' }  # Elimina líneas vacías
+            ) -join "`n"
+            if ($localContent) {
+                $localContent = $localContent | ConvertFrom-Json
+                if ($localContent.recommendations) {
+                    $combinedExtensions += $localContent.recommendations
+                    $combinedExtensions = $combinedExtensions | Select-Object -Unique | Sort-Object
+                    Write-Host "Local: $($combinedExtensions.Count) extensions`n"
+                }
+            }
+        } catch {
+            Write-Host "Error loading local extensions: $($_.Exception.Message)"
+        }
+    }
+}
+
+# Continuar con las extensiones del servidor
+Write-Host "Packs:"
 foreach ($env in $selectedEnvironments) {
-    $envPath = "$ORIGIN/$path/$env/extensions.json"
+    $envPath = "$ORIGIN/.vscode/extensions/$env/extensions.json"
     try {
         $jsonContent = (irm $envPath).ToString().Split([Environment]::NewLine) | 
             Where-Object { $_ -notmatch '^\s*//.*' } |  
@@ -122,7 +157,7 @@ foreach ($env in $selectedEnvironments) {
         
         $extensions = ($jsonContent -join "`n" | ConvertFrom-Json).recommendations
         $combinedExtensions += $extensions
-        Write-Host "Extensions found: $($extensions.Count)"
+        Write-Host " - ${env}: $($extensions.Count) extensions"
     } catch {
         Write-Host ("Error loading " + $envPath + ": " + $_.Exception.Message)
         continue
@@ -133,7 +168,7 @@ foreach ($env in $selectedEnvironments) {
 $uniqueExtensions = $combinedExtensions | Select-Object -Unique | Sort-Object
 
 # Verificar que tenemos extensiones
-Write-Host "Extensiones encontradas: $($uniqueExtensions.Count)"
+Write-Host "`nTotal: $($uniqueExtensions.Count) unique extensions"
 
 # Crear el JSON con formato exacto
 $newJson = "{`n" + 
@@ -149,5 +184,28 @@ if ([string]::IsNullOrWhiteSpace($newJson)) {
 }
 
 # Crear el archivo final
-New-Item -ItemType Directory -Force -Path ".vscode" | Out-Null
-$newJson | Out-File ".vscode/extensions.json" -Encoding UTF8 -NoNewline
+$selectedIndex = Select-Option -question "Preview of extensions.json:`n$newJson`n`nSave this file?" -menuOptions $yes_no
+if ($selectedIndex -eq 0) {
+    New-Item -ItemType Directory -Force -Path ".vscode" | Out-Null
+    $newJson | Out-File $localExtensionsPath -Encoding UTF8 -NoNewline
+}
+
+# Preguntar si se quiere guardar el workspace
+try {
+    $workspace = irm "$ORIGIN/.vscode/workspace.code-workspace"
+    if ($workspace) {
+        $selectedIndex = Select-Option -question "There is a workspace file in the server.`nDo you want to see it?" -menuOptions $yes_no
+        if ($selectedIndex -eq 0) {
+            # Obtener workspace del servidor
+            $selectedIndex = Select-Option -question "Preview of workspace.code-workspace:`n$workspace`n`nUse this workspace file?" -menuOptions $yes_no
+            if ($selectedIndex -eq 0) {
+                New-Item -ItemType Directory -Force -Path ".vscode" | Out-Null
+                $workspace | Out-File ".vscode/workspace.code-workspace" -Encoding UTF8 -NoNewline
+            }
+        }
+    }
+} catch {
+    Write-Host "Error loading workspace: $($_.Exception.Message)"
+}
+
+Write-Host "Done."

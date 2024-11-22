@@ -1,0 +1,9 @@
+{
+    "name": "vscode-workspace-manager",
+    "version": "1.0.0",
+    "description": "Manage your VSCode workspace",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    }
+}
