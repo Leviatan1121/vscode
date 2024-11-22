@@ -170,6 +170,10 @@ $uniqueExtensions = $combinedExtensions | Select-Object -Unique | Sort-Object
 # Verificar que tenemos extensiones
 Write-Host "`nTotal: $($uniqueExtensions.Count) unique extensions"
 
+# Esperar que el usuario presione una tecla para continuar
+Write-Host "`nPresiona cualquier tecla para continuar..."
+[Console]::ReadKey($true) | Out-Null
+
 # Crear el JSON con formato exacto
 $newJson = "{`n" + 
            "    ""recommendations"": [`n" +
