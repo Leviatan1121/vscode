@@ -16,17 +16,17 @@ try {
         }
     });
 
-    console.log('Extensiones detectadas:', extensions);
-    
-    // Crear archivo extensions.json
+    console.log('Extensions found:', extensions);
+
+    // Create extensions.json file
     const outputPath = path.join(__dirname, 'extensions.json');
     try {
         const jsonContent = JSON.stringify(extensions.map(String), null, 2);
         fs.writeFileSync(outputPath, jsonContent);
-        console.log('Archivo extensions.json creado exitosamente');
+        console.log('extensions.json file created successfully');
     } catch (error) {
-        console.error('Error al crear extensions.json:', error);
+        console.error('Error creating extensions.json:', error);
     }
 } catch (error) {
-    console.error('Error al leer el directorio de extensiones:', error);
+    console.error('Error reading extensions directory:', error);
 }

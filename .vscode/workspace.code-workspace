@@ -5,8 +5,6 @@
 		}
 	],
 	"settings": {
-		"workbench.colorTheme": "Default Dark Modern",
-		"editor.formatOnSave": true,
 		//* C
 		"C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0}",
 		"files.associations": {
@@ -15,7 +13,20 @@
 			"windows.h": "c",
 			"runner.h": "c"
 		},
-		/**/
+		//* Font, icons and theme
+		"editor.fontFamily": "Fira Code",
+		"editor.fontLigatures": true,
+		"editor.fontSize": 16,
+		"workbench.iconTheme": "material-icon-theme",
+		"workbench.colorTheme": "Default Dark Modern",
+		//* Save
+		// Format on save
+		"editor.formatOnSave": true,
+		"javascript.format.semicolons": "insert",
+		// Auto save
+		"files.autoSave": "afterDelay",
+		"files.autoSaveDelay": 100,
+		//* Terminal
 		"terminal.integrated.copyOnSelection": true,
 		"terminal.integrated.enableMultiLinePasteWarning": "never",
 		"terminal.integrated.gpuAcceleration": "on",
@@ -26,9 +37,9 @@
 			"pwshGit": true
 		},
 		"terminal.integrated.tabs.focusMode": "singleClick",
-		/*
+		//* Status bar
 		"workbench.statusBar.visible": false,
-		*/
+		//* Tabs
 		"workbench.editor.pinnedTabsOnSeparateRow": true,
 		"workbench.editor.tabActionCloseVisibility": false,
 		"workbench.editor.wrapTabs": true,
@@ -39,13 +50,7 @@
 		"workbench.reduceMotion": "on",
 		"workbench.activityBar.location": "top",
 		"workbench.sideBar.location": "right",
-		"javascript.format.semicolons": "insert",
-		"files.autoSave": "afterDelay",
-		"files.autoSaveDelay": 100,
-		//* Font
-		"editor.fontFamily": "Fira Code",
-		"editor.fontLigatures": true,
-		"editor.fontSize": 16,
+		//* Colors
 		"workbench.colorCustomizations": {
 			"tab.activeBackground": "#010101",
 			"sideBar.background": "#0e0e0e",
