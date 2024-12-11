@@ -8,10 +8,22 @@
 		//* C
 		"C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0}",
 		"files.associations": {
-			"stdio.h": "c",
-			"stdlib.h": "c",
-			"windows.h": "c",
-			"runner.h": "c"
+			"*.c": "c",
+			"*.h": "c"
+		},
+		//* Markup
+		"editor.linkedEditing": true,
+		"html.autoClosingTags": true,
+		//* JavaScript
+		"javascript.autoClosingTags": true,
+		"javascript.format.semicolons": "insert",
+		//* TypeScript
+		"typescript.autoClosingTags": true,
+		"typescript.format.semicolons": "insert",
+		//* Trim trailing whitespace
+		"files.trimTrailingWhitespace": true,
+		"[markdown]": {
+			"files.trimTrailingWhitespace": false
 		},
 		//* Font, icons and theme
 		"editor.fontFamily": "Fira Code",
@@ -22,7 +34,6 @@
 		//* Save
 		// Format on save
 		"editor.formatOnSave": true,
-		"javascript.format.semicolons": "insert",
 		// Auto save
 		"files.autoSave": "afterDelay",
 		"files.autoSaveDelay": 100,
@@ -31,11 +42,6 @@
 		"terminal.integrated.enableMultiLinePasteWarning": "never",
 		"terminal.integrated.gpuAcceleration": "on",
 		"terminal.integrated.hideOnStartup": "always",
-		"terminal.integrated.suggest.enabled": true,
-		"terminal.integrated.suggest.builtinCompletions": {
-			"pwshCode": true,
-			"pwshGit": true
-		},
 		"terminal.integrated.tabs.focusMode": "singleClick",
 		//* Status bar
 		"workbench.statusBar.visible": false,
@@ -86,7 +92,16 @@
 			"editorSuggestWidget.selectedBackground": "#041b2a",
 			//* Hover Widget
 			"editorHoverWidget.foreground": "#fff",
-			"editorHoverWidget.background": "#111"
+			"editorHoverWidget.background": "#111",
+			"[*]": {
+				"editorBracketHighlight.foreground1": "#E6E6E6",
+				"editorBracketHighlight.foreground2": "#FF75B5",
+				"editorBracketHighlight.foreground3": "#19f9d8",
+				"editorBracketHighlight.foreground4": "#B084EB",
+				"editorBracketHighlight.foreground5": "#45A9F9",
+				"editorBracketHighlight.foreground6": "#FFB86C",
+				"editorBracketHighlight.unexpectedBracket.foreground": "#FF2C6D"
+			}
 		},
 		//* Vertical lines
 		"editor.rulers": [
@@ -101,8 +116,7 @@
 		],
 		//* Brackets
 		"editor.guides.bracketPairs": true,
-		"editor.guides.bracketPairsHorizontal": "active",
 		"editor.bracketPairColorization.enabled": true,
-		"editor.guides.highlightActiveBracketPair": true
+		"editor.guides.highlightActiveBracketPair": true,
 	}
 }
