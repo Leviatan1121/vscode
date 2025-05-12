@@ -62,7 +62,7 @@ function Select-Multiple {
     )
     $selectedIndices = [System.Collections.ArrayList]@()
     $currentIndex = 0
-    
+
     while ($true) {
         Clear-Host
         Write-Host $question
@@ -76,11 +76,11 @@ function Select-Multiple {
         $key = [Console]::ReadKey($true)
 
         switch ($key.Key) {
-            "UpArrow" { 
-                $currentIndex = ($currentIndex - 1 + $menuOptions.Length) % $menuOptions.Length 
+            "UpArrow" {
+                $currentIndex = ($currentIndex - 1 + $menuOptions.Length) % $menuOptions.Length
             }
-            "DownArrow" { 
-                $currentIndex = ($currentIndex + 1) % $menuOptions.Length 
+            "DownArrow" {
+                $currentIndex = ($currentIndex + 1) % $menuOptions.Length
             }
             "Spacebar" {
                 if ($selectedIndices -contains $currentIndex) {
@@ -124,7 +124,7 @@ if (Test-Path $localExtensionsPath) {
         return
     } elseif ($combine_replace[$selectedIndex] -eq "Combine extensions") {
         try {
-            $localContent = (Get-Content $localExtensionsPath | 
+            $localContent = (Get-Content $localExtensionsPath |
                 Where-Object { $_ -notmatch '^\s*//.*' } |  # Elimina comentarios de línea completa
                 Where-Object { $_ -notmatch '/\*.*\*/' } |  # Elimina comentarios de bloque
                 ForEach-Object { $_ -replace '//.*$', '' } |  # Elimina comentarios al final de la línea
@@ -147,14 +147,14 @@ if (Test-Path $localExtensionsPath) {
 # Continuar con las extensiones del servidor
 Write-Host "Packs:"
 foreach ($env in $selectedEnvironments) {
-    $envPath = "$ORIGIN/.vscode/extensions/$env/extensions.json"
+    $envPath = "$ORIGIN/settings/extensions/$env/extensions.json"
     try {
-        $jsonContent = (irm $envPath).ToString().Split([Environment]::NewLine) | 
-            Where-Object { $_ -notmatch '^\s*//.*' } |  
-            Where-Object { $_ -notmatch '/\*.*\*/' } |  
-            ForEach-Object { $_ -replace '//.*$', '' } |  
-            Where-Object { $_.Trim() -ne '' }  
-        
+        $jsonContent = (irm $envPath).ToString().Split([Environment]::NewLine) |
+            Where-Object { $_ -notmatch '^\s*//.*' } |
+            Where-Object { $_ -notmatch '/\*.*\*/' } |
+            ForEach-Object { $_ -replace '//.*$', '' } |
+            Where-Object { $_.Trim() -ne '' }
+
         $extensions = ($jsonContent -join "`n" | ConvertFrom-Json).recommendations
         $combinedExtensions += $extensions
         Write-Host " - ${env}: $($extensions.Count) extensions"
@@ -175,7 +175,7 @@ Write-Host "`nPresiona cualquier tecla para continuar..."
 [Console]::ReadKey($true) | Out-Null
 
 # Crear el JSON con formato exacto
-$newJson = "{`n" + 
+$newJson = "{`n" +
            "    ""recommendations"": [`n" +
            (($uniqueExtensions | Where-Object { $_ } | ForEach-Object { "        ""$_""" }) -join ",`n") +
            "`n    ]`n" +
@@ -196,7 +196,7 @@ if ($selectedIndex -eq 0) {
 
 # Preguntar si se quiere guardar el workspace
 try {
-    $workspace = irm "$ORIGIN/.vscode/workspace.code-workspace"
+    $workspace = irm "$ORIGIN/settings/workspace.code-workspace"
     if ($workspace) {
         $selectedIndex = Select-Option -question "There is a workspace file in the server.`nDo you want to see it?" -menuOptions $yes_no
         if ($selectedIndex -eq 0) {

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const extensionsPath = path.join(__dirname, '.vscode', 'extensions');
+const extensionsPath = path.join(__dirname, 'settings', 'extensions');
 
 const extensions = [];
 try {
