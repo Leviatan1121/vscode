@@ -1,4 +1,8 @@
-# VSCode Workspace Manager
+# VSCode Workspace Configurator
+
+## Description:
+Script for configuring Visual Studio Code with extensions y custom settings.
+
 ## Usage
 
 ### powershell
