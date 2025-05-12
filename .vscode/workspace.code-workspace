@@ -7,7 +7,7 @@
 	"settings": {
 		"window.title": "Workspace Title",
 		//* C
-		"C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0}",
+		"C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0 }",
 		//* Files
 		"files.associations": {
 			"*.wsb": "xml",
