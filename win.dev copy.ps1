@@ -150,12 +150,6 @@ function Select-Extension-Packs {
     }
 }
 
-$EXTENSION_ACTION = @{
-    COMBINE = 0
-    REPLACE = 1
-    DO_NOTHING = 2
-}
-
 function Get-Local-Extensions {
     param (
         [string]$local_extensions_path
@@ -164,27 +158,42 @@ function Get-Local-Extensions {
     if (Test-Path $local_extensions_path) {
         $question = "Local extensions file found.`n`nHow do you want to proceed?"
         $options = @("Combine extensions", "Replace extensions", "Do nothing")
-        $selected = Single-Select $question $options
+        $selected_index = Single-Select $question $options
         Clear-Host
+        $ACTION = @{
+            DO_NOTHING = 0
+            REPLACE = 1
+            COMBINE = 2
+        }
+        switch ($options[$selected_index]) {
+            "Combine extensions" {
+                #* COMBINE EXTENSIONS
+                $json = Get-Content $local_extensions_path | ConvertFrom-Json
 
-        if ($selected -eq $EXTENSION_ACTION.COMBINE) {
-            $json = Get-Content $local_extensions_path | ConvertFrom-Json
-
-            if ($json.recommendations) {
-                $extensions = $json.recommendations
-                if ($local_extensions.Count -eq 1) {
-                    Write-Host "Local: $($extensions.Count) extension`n"
-                } else {
-                    Write-Host "Local: $($extensions.Count) extensions`n"
+                if ($json.recommendations) {
+                    $extensions = $json.recommendations
+                    if ($local_extensions.Count -eq 1) {
+                        Write-Host "Local: $($extensions.Count) extension`n"
+                    } else {
+                        Write-Host "Local: $($extensions.Count) extensions`n"
+                    }
+                    return @( $ACTION.COMBINE, $extensions )
                 }
-            } else {
+
                 Write-Host "Local: no extensions found`n"
-                return @( $EXTENSION_ACTION.REPLACE, $extensions )
+                return @( $ACTION.REPLACE, $extensions )
+            }
+            "Replace extensions" {
+                return @( $ACTION.REPLACE, $extensions )
+            }
+            "Do nothing" {
+                Write-Host "Doing nothing"
+                return @( $ACTION.DO_NOTHING, $extensions )
             }
         }
-        return @( $selected, $extensions )
+    } else {
+        return @( $ACTION.REPLACE, $extensions )
     }
-    return @( $EXTENSION_ACTION.REPLACE, $extensions )
 }
 
 function Get-Remote-Extensions {
@@ -261,16 +270,19 @@ function Main {
         $selected, $local_extensions = Get-Local-Extensions $LOCAL_EXTENSIONS_PATH
 
         $extensions = @()
-        switch ($selected) {
-            $EXTENSION_ACTION.DO_NOTHING {
+        $options = @("Local", "Remote", "Both")
+        switch ($options[$selected]) {
+            "Local" {
                 return
             }
-            $EXTENSION_ACTION.REPLACE {
-                $extensions = Get-Remote-Extensions $selected_extension_packs
+            "Remote" {
+                $remote_extensions = Get-Remote-Extensions $selected_extension_packs
+                $extensions = $remote_extensions
             }
-            $EXTENSION_ACTION.COMBINE {
+            "Both" {
                 $remote_extensions = Get-Remote-Extensions $selected_extension_packs
                 $extensions = $local_extensions + $remote_extensions
+                #$extensions += $remote_extensions
             }
         }
 
