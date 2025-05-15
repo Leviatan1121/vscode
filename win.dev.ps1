@@ -32,7 +32,12 @@ function Save-File {
         [string]$file_path,
         [string]$file_content
     )
-    $file_content | Out-File $file_path -Encoding UTF8 -NoNewline
+    try {
+        $file_content | Out-File $file_path -Encoding UTF8 -NoNewline
+        return $false
+    } catch {
+        return $_
+    }
 }
 
 function Single-Select-Menu {
@@ -250,37 +255,89 @@ function Save-Extensions {
 
 
 function Get-Remote-Workspace {
-    $WORKSPACE_ACTION = @{
-        LOAD_AND_SAVE = 0
-        SKIP = 1
-    }
+    $err = $false
     $workspace = $null
     try {
         $workspace = irm "$ORIGIN/settings/workspace.code-workspace"
+        try {
+            $workspace | ConvertFrom-Json
+        } catch {
+            $err = "Error parsing the workspace file: The workspace file is not a valid JSON.`n+ Details: $_"
+        }
     } catch {
-        Write-Host "Error getting workspace file from server: $($_.Exception.Message)"
-        Pause
-        return
+        $err = "Error getting a workspace file from the server: Failed connecting to the server or file not found.`n+ Details: $_"
     }
 
-    try {
-        $workspace | ConvertFrom-Json
-    } catch {
-        Write-Host "Error: The workspace file's JSON format is not valid" -ForegroundColor Red
+    if ($err) {
+        Write-Host "`n$err" -ForegroundColor Red
         Pause
-        return
+        return @( $false, $workspace )
+    } else {
+        return @( $true, $workspace )
+    }
+}
+function Use-Workspace {
+    param (
+        [string]$workspace
+    )
+    $options = @("Yes", "No")
+    $selected = Single-Select "There is a workspace file in the server.`nDo you want to load it?" $options
+    if ($options[$selected] -eq "Yes") {
+        $selected = Single-Select "Preview of workspace.code-workspace:`n`n$workspace`n`nUse this workspace file?" $options
+        if ($options[$selected] -eq "Yes") {
+            return $true
+        }
+    }
+    return $false
+}
+function Save-Workspace {
+    param (
+        [string]$workspace
+    )
+    $workspace_name = $null
+    $options = @("Yes", "No")
+
+    Check-Folder
+    while ($workspace_name -eq $null) {
+        Clear-Host
+        $workspace_name = Read-Host -Prompt "Name your workspace (leave empty to cancel)"
+        if ([string]::IsNullOrWhiteSpace($workspace_name)) {
+            Write-Host "Workspace creation canceled."
+            return
+        }
+
+        $err = Save-File ".vscode/$workspace_name.code-workspace.tmp" ""
+        if ($err) {
+            $question = "Error creating a Workspace file with name $workspace_name: Invalid filename or insufficient permissions.`nDo you want to try again?"
+            $selected = Single-Select $question $options
+            if ($options[$selected] -eq "No") {
+                Write-Host "Workspace creation canceled."
+                return
+            }
+            $workspace_name = $null
+        }
     }
 
-        $options = @("Yes", "No")
-        $selected = Single-Select "There is a workspace file in the server.`nDo you want to load it?" $options
-        if ($selected -eq $WORKSPACE_ACTION.LOAD_AND_SAVE) {
-            # Obtener workspace del servidor
-            $selected = Single-Select "Preview of workspace.code-workspace:`n`n$workspace`n`nUse this workspace file?" $options
-            if ($selected -eq $WORKSPACE_ACTION.LOAD_AND_SAVE) {
-                Check-Folder
-                Save-File ".vscode/workspace.code-workspace" $workspace
+    Remove-Item -Path ".vscode/$workspace_name.code-workspace.tmp" -Force
+
+    $question = "Remove any other Workspace files in the .vscode folder?"
+    $selected = Single-Select $question $options
+    if ($options[$selected] -eq "Yes") {
+        $old_workspaces = Get-ChildItem -Path ".vscode/" -Filter "*.code-workspace" -File
+        if ($old_workspaces.Count -gt 0) {
+            foreach ($file in $files) {
+                Remove-Item -Path $file.FullName -Force
             }
         }
+    }
+
+    $file_data = $workspace.Replace("Workspace Title", $workspace_name)
+    $save_error = Save-File ".vscode/$workspace_name.code-workspace" $file_data
+    if ($save_error) {
+        Write-Host "Error saving the Workspace file.`n+ Path: .vscode/$workspace_name.code-workspace`n+ Details: $save_error" -ForegroundColor Red
+    } else {
+        Write-Host "Workspace saved successfully" -ForegroundColor Green
+    }
 }
 function Main {
     $selected_extension_packs = Select-Extension-Packs
@@ -308,15 +365,17 @@ function Main {
         Write-Host "`nTotal: $($extensions.Count) unique extensions"
 
         Pause
-
         Save-Extensions $extensions $LOCAL_EXTENSIONS_PATH
-
         Pause
     }
-    $workspace = Get-Remote-Workspace
-
-    #Workspace
+    $workspace_is_valid, $workspace = Get-Remote-Workspace
+    if ($workspace_is_valid) {
+        $use = Use-Workspace $workspace
+        if (!$use) { Exit-Program }
+        Save-Workspace $workspace
+        Pause
+    }
 }
 Cursor $false
 Main
-Cursor $true
+Exit-Program
