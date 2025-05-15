@@ -249,8 +249,38 @@ function Save-Extensions {
 }
 
 
-function Workspace {
-    $workspace = irm "$ORIGIN/settings/workspace.code-workspace"
+function Get-Remote-Workspace {
+    $WORKSPACE_ACTION = @{
+        LOAD_AND_SAVE = 0
+        SKIP = 1
+    }
+    $workspace = $null
+    try {
+        $workspace = irm "$ORIGIN/settings/workspace.code-workspace"
+    } catch {
+        Write-Host "Error getting workspace file from server: $($_.Exception.Message)"
+        Pause
+        return
+    }
+
+    try {
+        $workspace | ConvertFrom-Json
+    } catch {
+        Write-Host "Error: The workspace file's JSON format is not valid" -ForegroundColor Red
+        Pause
+        return
+    }
+
+        $options = @("Yes", "No")
+        $selected = Single-Select "There is a workspace file in the server.`nDo you want to load it?" $options
+        if ($selected -eq $WORKSPACE_ACTION.LOAD_AND_SAVE) {
+            # Obtener workspace del servidor
+            $selected = Single-Select "Preview of workspace.code-workspace:`n`n$workspace`n`nUse this workspace file?" $options
+            if ($selected -eq $WORKSPACE_ACTION.LOAD_AND_SAVE) {
+                Check-Folder
+                Save-File ".vscode/workspace.code-workspace" $workspace
+            }
+        }
 }
 function Main {
     $selected_extension_packs = Select-Extension-Packs
@@ -282,9 +312,8 @@ function Main {
         Save-Extensions $extensions $LOCAL_EXTENSIONS_PATH
 
         Pause
-
-        return
     }
+    $workspace = Get-Remote-Workspace
 
     #Workspace
 }
