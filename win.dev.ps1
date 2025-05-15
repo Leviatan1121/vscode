@@ -1,30 +1,17 @@
 #* CONFIG
 $ORIGIN = "https://vscode.levihub.dev"
-$yes_no = @("Yes", "No")
 
-function Cursor {
-    param (
-        [bool]$visible
-    )
-    [Console]::CursorVisible = $visible
-}
-function Exit-Program {
-    Clear-Host
-    Write-Host "Program terminated" -ForegroundColor Green
-    Cursor $true
-    exit
-}
-
-function Pause {
-    Write-Host "`nPress any key to continue . . . "
-    [Console]::ReadKey($true) | Out-Null
-    Clear-Host
-}
-
-#* FILE FUNCTIONS
-function Check-Folder {
+#* PRACTICAL FUNCTIONS
+function Save-Folder {
     if (!(Test-Path ".vscode")) {
-        New-Item ".vscode" -ItemType Directory | Out-Null
+        try {
+            New-Item ".vscode" -ItemType Directory | Out-Null
+        } catch {
+            Clear-Host
+            Write-Host "Error creating the .vscode folder.`n+ Details: $_" -ForegroundColor Red
+            Wait-Porgram
+            Exit-Program
+        }
     }
 }
 function Save-File {
@@ -33,13 +20,28 @@ function Save-File {
         [string]$file_content
     )
     try {
-        $file_content | Out-File $file_path -Encoding UTF8 -NoNewline
+        $file_content | Out-File $file_path -Encoding UTF8 -NoNewline | Out-Null
         return $false
     } catch {
         return $_
     }
 }
+function Move-Toggle {
+    [Console]::CursorVisible = ![Console]::CursorVisible
+}
+function Wait-Porgram {
+    Write-Host "`nPress any key to continue . . . "
+    [Console]::ReadKey($true) | Out-Null
+    Clear-Host
+}
+function Exit-Program {
+    Clear-Host
+    Write-Host "Program terminated" -ForegroundColor Green
+    Move-Toggle
+    exit
+}
 
+#* MENU FUNCTIONS
 function Single-Select-Menu {
     param (
         [string]$question,
@@ -56,7 +58,6 @@ function Single-Select-Menu {
         }
     }
 }
-
 function Single-Select {
     param (
         [string]$question,
@@ -84,7 +85,6 @@ function Single-Select {
         }
     }
 }
-
 function Multi-Select {
     param (
         [string]$question,
@@ -142,6 +142,7 @@ function Multi-Select {
     }
 }
 
+#* EXTENSIONS
 function Select-Extension-Packs {
     $extension_packs_names = irm "$ORIGIN/extensions.json"
     $selected_indexes = Multi-Select "Select extension packs:" $extension_packs_names
@@ -154,13 +155,6 @@ function Select-Extension-Packs {
         }
     }
 }
-
-$EXTENSION_ACTION = @{
-    COMBINE = 0
-    REPLACE = 1
-    DO_NOTHING = 2
-}
-
 function Get-Local-Extensions {
     param (
         [string]$local_extensions_path
@@ -191,7 +185,6 @@ function Get-Local-Extensions {
     }
     return @( $EXTENSION_ACTION.REPLACE, $extensions )
 }
-
 function Get-Remote-Extensions {
     param (
         [array]$selected_extension_packs
@@ -221,7 +214,6 @@ function Get-Remote-Extensions {
     }
     return $remote_extensions
 }
-
 function Save-Extensions {
     param (
         [array]$extensions,
@@ -239,38 +231,38 @@ function Save-Extensions {
     # Verificar que el JSON no está vacío
     if ([string]::IsNullOrWhiteSpace($json)) {
         Write-Host "Error: The generated JSON is empty" -ForegroundColor Red
-        Pause
+        Wait-Porgram
         return
     }
     $options = @("Yes", "No")
     $selected = Single-Select "Preview of extensions.json:`n`n$json`n`nSave this file?" $options
+    Clear-Host
     if ($options[$selected] -eq "Yes") {
-        Check-Folder
-        Save-File $extensions_path $json
-        Write-Host "Extensions saved successfully" -ForegroundColor Green
+        Save-Folder
+        $save_error = Save-File $extensions_path $json
+        if ($save_error) {
+            Write-Host "Error saving the Extensions file.`n+ Path: $extensions_path`n+ Details: $save_error" -ForegroundColor Red
+        } else {
+            Write-Host "Extensions saved successfully" -ForegroundColor Green
+        }
     } else {
-        Write-Host "Extensions not saved" -ForegroundColor Red
+        Write-Host "Extensions not saved" -ForegroundColor Yellow
     }
 }
 
-
+#* WORKSPACE
 function Get-Remote-Workspace {
     $err = $false
     $workspace = $null
     try {
         $workspace = irm "$ORIGIN/settings/workspace.code-workspace"
-        try {
-            $workspace | ConvertFrom-Json
-        } catch {
-            $err = "Error parsing the workspace file: The workspace file is not a valid JSON.`n+ Details: $_"
-        }
     } catch {
         $err = "Error getting a workspace file from the server: Failed connecting to the server or file not found.`n+ Details: $_"
     }
 
     if ($err) {
         Write-Host "`n$err" -ForegroundColor Red
-        Pause
+        Wait-Porgram
         return @( $false, $workspace )
     } else {
         return @( $true, $workspace )
@@ -297,21 +289,22 @@ function Save-Workspace {
     $workspace_name = $null
     $options = @("Yes", "No")
 
-    Check-Folder
+    Save-Folder
     while ($workspace_name -eq $null) {
         Clear-Host
         $workspace_name = Read-Host -Prompt "Name your workspace (leave empty to cancel)"
         if ([string]::IsNullOrWhiteSpace($workspace_name)) {
-            Write-Host "Workspace creation canceled."
+            Clear-Host
+            Write-Host "Workspace creation canceled" -foregroundcolor Yellow
             return
         }
 
         $err = Save-File ".vscode/$workspace_name.code-workspace.tmp" ""
         if ($err) {
-            $question = "Error creating a Workspace file with name $workspace_name: Invalid filename or insufficient permissions.`nDo you want to try again?"
+            $question = "Error creating a Workspace file with name ${workspace_name}: Invalid filename or insufficient permissions.`nDo you want to try again?"
             $selected = Single-Select $question $options
             if ($options[$selected] -eq "No") {
-                Write-Host "Workspace creation canceled."
+                Write-Host "Workspace creation canceled" -foregroundcolor Yellow
                 return
             }
             $workspace_name = $null
@@ -322,15 +315,23 @@ function Save-Workspace {
 
     $question = "Remove any other Workspace files in the .vscode folder?"
     $selected = Single-Select $question $options
+    Clear-Host
     if ($options[$selected] -eq "Yes") {
-        $old_workspaces = Get-ChildItem -Path ".vscode/" -Filter "*.code-workspace" -File
-        if ($old_workspaces.Count -gt 0) {
-            foreach ($file in $files) {
-                Remove-Item -Path $file.FullName -Force
+        Write-Host "Removing Workspace files..."
+        try {
+            $old_workspaces = Get-ChildItem -Path ".vscode/" -Filter "*.code-workspace" -File
+            if ($old_workspaces.Count -gt 0) {
+                foreach ($file in $files) {
+                    Remove-Item -Path $file.FullName -Force
+                }
             }
+            Write-Host "Workspace files removed successfully`n" -ForegroundColor Green
+        } catch {
+            Write-Host "Error removing Workspace files.`n+ Details: $_`n" -ForegroundColor Red
         }
     }
 
+    Write-Host "Saving workspace..."
     $file_data = $workspace.Replace("Workspace Title", $workspace_name)
     $save_error = Save-File ".vscode/$workspace_name.code-workspace" $file_data
     if ($save_error) {
@@ -338,6 +339,14 @@ function Save-Workspace {
     } else {
         Write-Host "Workspace saved successfully" -ForegroundColor Green
     }
+}
+
+
+#* MAIN
+$EXTENSION_ACTION = @{
+    COMBINE = 0
+    REPLACE = 1
+    DO_NOTHING = 2
 }
 function Main {
     $selected_extension_packs = Select-Extension-Packs
@@ -363,19 +372,19 @@ function Main {
 
         $extensions = $extensions | Select-Object -Unique | Sort-Object
         Write-Host "`nTotal: $($extensions.Count) unique extensions"
+        Wait-Porgram
 
-        Pause
         Save-Extensions $extensions $LOCAL_EXTENSIONS_PATH
-        Pause
+        Wait-Porgram
     }
     $workspace_is_valid, $workspace = Get-Remote-Workspace
     if ($workspace_is_valid) {
         $use = Use-Workspace $workspace
         if (!$use) { Exit-Program }
         Save-Workspace $workspace
-        Pause
+        Wait-Porgram
     }
 }
-Cursor $false
+Move-Toggle
 Main
 Exit-Program
