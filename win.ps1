@@ -1,215 +1,395 @@
+#* CONFIG
 $ORIGIN = "https://vscode.levihub.dev"
-# Obtener el contenido JSON desde la URL usando Invoke-RestMethod (irm)
-$env_options = irm "$ORIGIN/extensions.json"
-$combine_replace = @("Combine extensions", "Replace extensions")
-$yes_no = @("Yes", "No")
 
-# Iterar sobre cada elemento del array
-foreach ($extension in $env_options) {
-    Write-Host "Extensión: $extension"
-    # Aquí puedes agregar la lógica que necesites para cada extensión
+#* PRACTICAL FUNCTIONS
+function Save-Folder {
+    if (!(Test-Path ".vscode")) {
+        try {
+            New-Item ".vscode" -ItemType Directory | Out-Null
+        } catch {
+            Clear-Host
+            Write-Host "Error creating the .vscode folder.`n+ Details: $_" -ForegroundColor Red
+            Wait-Porgram
+            Exit-Program
+        }
+    }
+}
+function Save-File {
+    param (
+        [string]$file_path,
+        [string]$file_content
+    )
+    try {
+        $file_content | Out-File $file_path -Encoding UTF8 -NoNewline | Out-Null
+        return $false
+    } catch {
+        return $_
+    }
+}
+function Move-Toggle {
+    [Console]::CursorVisible = ![Console]::CursorVisible
+}
+function Wait-Porgram {
+    Write-Host "`nPress any key to continue . . . "
+    [Console]::ReadKey($true) | Out-Null
+    Clear-Host
+}
+function Exit-Program {
+    Clear-Host
+    Write-Host "Program terminated" -ForegroundColor Green
+    Move-Toggle
+    exit
 }
 
-$selectedIndex = 0
-
-# Función para mostrar el menú
-function Show-Menu {
+#* MENU FUNCTIONS
+function Single-Select-Menu {
     param (
         [string]$question,
-        [string[]]$menuOptions,
-        [int]$selectedIndex
+        [string[]]$menu_options,
+        [int]$selected_index
     )
     Clear-Host
     Write-Host $question
-    for ($i = 0; $i -lt $menuOptions.Length; $i++) {
-        if ($i -eq $selectedIndex) {
-            Write-Host "> $($menuOptions[$i])" -ForegroundColor Cyan
+    for ($i = 0; $i -lt $menu_options.Length; $i++) {
+        if ($i -eq $selected_index) {
+            Write-Host "> $($menu_options[$i])" -ForegroundColor Cyan
         } else {
-            Write-Host "  $($menuOptions[$i])"
+            Write-Host "  $($menu_options[$i])"
         }
     }
 }
-
-# Función para manejar la selección del menú
-function Select-Option {
+function Single-Select {
     param (
         [string]$question,
-        [string[]]$menuOptions
+        [array]$menu_options
     )
-    $selectedIndex = 0
+    $selected_index = 0
     while ($true) {
-        Show-Menu -question $question -menuOptions $menuOptions -selectedIndex $selectedIndex
-        Write-Host "`n[Arrows] Navigate  [Space] Select/Deselect  [Enter] Confirm  [Esc] Cancel"
+        Single-Select-Menu $question $menu_options $selected_index
+        Write-Host "`n[Arrows] Navigate  [Enter] Confirm  [Esc] Exit"
         $key = [Console]::ReadKey($true)
 
-        if ($key.Key -eq [ConsoleKey]::UpArrow) {
-            $selectedIndex = ($selectedIndex - 1 + $menuOptions.Length) % $menuOptions.Length
-        } elseif ($key.Key -eq [ConsoleKey]::DownArrow) {
-            $selectedIndex = ($selectedIndex + 1) % $menuOptions.Length
-        } elseif ($key.Key -eq [ConsoleKey]::Enter) {
-            return $selectedIndex
-        } elseif ($key.Key -eq [ConsoleKey]::Escape) {
-            return -1
+        switch ($key.Key) {
+            "UpArrow" {
+                $selected_index = ($selected_index - 1 + $menu_options.Length) % $menu_options.Length
+            }
+            "DownArrow" {
+                $selected_index = ($selected_index + 1) % $menu_options.Length
+            }
+            "Enter" {
+                return $selected_index
+            }
+            "Escape" {
+                Exit-Program
+            }
         }
     }
 }
-
-# Nueva función para selección múltiple con checkboxes
-function Select-Multiple {
+function Multi-Select {
     param (
         [string]$question,
-        [string[]]$menuOptions
+        [array]$menu_options
     )
-    $selectedIndices = [System.Collections.ArrayList]@()
-    $currentIndex = 0
-
+    $selected_indexes = [System.Collections.ArrayList]@()
+    $current_index = 0
     while ($true) {
         Clear-Host
         Write-Host $question
-        for ($i = 0; $i -lt $menuOptions.Length; $i++) {
-            $prefix = if ($i -eq $currentIndex) { ">" } else { " " }
-            $checkbox = if ($selectedIndices -contains $i) { "[x]" } else { "[ ]" }
-            Write-Host "$prefix $checkbox $($menuOptions[$i])"
+        for ($i = 0; $i -lt $menu_options.Length; $i++) {
+            $string_parts = @(
+                @(if ($i -eq $current_index) { ">" } else { " " }, "Cyan"),
+                @(" ["),
+                @(if ($selected_indexes -contains $i) { "x" } else { " " }, "Cyan"),
+                @("] $($menu_options[$i])`n")
+            )
+            $string_parts | ForEach-Object {
+                if ($_[1]) {
+                    Write-Host $_[0] -ForegroundColor $_[1] -NoNewline
+                } else {
+                    Write-Host $_[0] -NoNewline
+                }
+            }
         }
-        Write-Host "`n[Arrows] Navigate  [Space] Select/Deselect  [Enter] Confirm  [Esc] Cancel"
+        Write-Host "`n[Arrows] Navigate  [Space] Select/Deselect  [Enter] Confirm  [Esc] Exit"
 
         $key = [Console]::ReadKey($true)
 
         switch ($key.Key) {
             "UpArrow" {
-                $currentIndex = ($currentIndex - 1 + $menuOptions.Length) % $menuOptions.Length
+                $current_index = ($current_index - 1 + $menu_options.Length) % $menu_options.Length
             }
             "DownArrow" {
-                $currentIndex = ($currentIndex + 1) % $menuOptions.Length
+                $current_index = ($current_index + 1) % $menu_options.Length
             }
             "Spacebar" {
-                if ($selectedIndices -contains $currentIndex) {
-                    $selectedIndices.Remove($currentIndex)
+                if ($selected_indexes -contains $current_index) {
+                    $selected_indexes.Remove($current_index)
                 } else {
-                    [void]$selectedIndices.Add($currentIndex)
+                    [void]$selected_indexes.Add($current_index)
                 }
             }
             "Enter" {
-                if ($selectedIndices.Count -gt 0) {
-                    return $selectedIndices
+                if ($selected_indexes.Count -gt 0) {
+                    return $selected_indexes
+                } else {
+                    return -1
                 }
             }
             "Escape" {
-                return @()
+                Exit-Program
             }
         }
     }
 }
 
-# 2) Selección de environments
-$selectedIndexes = Select-Multiple -question "Select extension packs:" -menuOptions $env_options
-if ($selectedIndexes.Count -eq 0) {
-    Write-Host "`nOperation cancelled"
-    return
+#* EXTENSIONS
+function Select-Extension-Packs {
+    $extension_packs_names = irm "$ORIGIN/extensions.json"
+    $selected_indexes = Multi-Select "Select extension packs:" $extension_packs_names
+    switch ($selected_indexes) {
+        -1 {
+            return 0
+        }
+        default {
+            return @($selected_indexes | ForEach-Object { $extension_packs_names[$_].ToLower() }) | Select-Object -Unique | Sort-Object
+        }
+    }
 }
+function Get-Local-Extensions {
+    param (
+        [string]$local_extensions_path
+    )
+    $local_extensions = @()
+    if (Test-Path $local_extensions_path) {
+        $question = "Local extensions file found.`n`nHow do you want to proceed?"
+        $options = @("Combine extensions", "Replace extensions", "Do nothing")
+        $selected = Single-Select $question $options
+        Clear-Host
 
-Clear-Host
-$selectedEnvironments = @($selectedIndexes | ForEach-Object { $env_options[$_].ToLower() })
+        if ($selected -eq $EXTENSION_ACTION.COMBINE) {
+            $json = Get-Content $local_extensions_path | ConvertFrom-Json
 
-# 3) Crear archivo combinado
-$combinedExtensions = @()
-
-# Primero, verificar y cargar extensiones locales si existen
-$localExtensionsPath = ".vscode/extensions.json"
-if (Test-Path $localExtensionsPath) {
-    $selectedIndex = Select-Option -question "Local extensions file found.`nDo you want to combine or replace local extensions?" -menuOptions $combine_replace
-    Clear-Host
-    if ($selectedIndex -eq -1) {
-        Write-Host "`nOperation cancelled"
-        return
-    } elseif ($combine_replace[$selectedIndex] -eq "Combine extensions") {
-        try {
-            $localContent = (Get-Content $localExtensionsPath |
-                Where-Object { $_ -notmatch '^\s*//.*' } |  # Elimina comentarios de línea completa
-                Where-Object { $_ -notmatch '/\*.*\*/' } |  # Elimina comentarios de bloque
-                ForEach-Object { $_ -replace '//.*$', '' } |  # Elimina comentarios al final de la línea
-                Where-Object { $_.Trim() -ne '' }  # Elimina líneas vacías
-            ) -join "`n"
-            if ($localContent) {
-                $localContent = $localContent | ConvertFrom-Json
-                if ($localContent.recommendations) {
-                    $combinedExtensions += $localContent.recommendations
-                    $combinedExtensions = $combinedExtensions | Select-Object -Unique | Sort-Object
-                    Write-Host "Local: $($combinedExtensions.Count) extensions`n"
+            if ($json.recommendations) {
+                $extensions = $json.recommendations
+                if ($local_extensions.Count -eq 1) {
+                    Write-Host "Local: $($extensions.Count) extension`n"
+                } else {
+                    Write-Host "Local: $($extensions.Count) extensions`n"
                 }
+            } else {
+                Write-Host "Local: no extensions found`n"
+                return @( $EXTENSION_ACTION.REPLACE, $extensions )
             }
-        } catch {
-            Write-Host "Error loading local extensions: $($_.Exception.Message)"
         }
+        return @( $selected, $extensions )
     }
+    return @( $EXTENSION_ACTION.REPLACE, $extensions )
 }
+function Get-Remote-Extensions {
+    param (
+        [array]$selected_extension_packs
+    )
 
-# Continuar con las extensiones del servidor
-Write-Host "Packs:"
-foreach ($env in $selectedEnvironments) {
-    $envPath = "$ORIGIN/settings/extensions/$env/extensions.json"
-    try {
-        $jsonContent = (irm $envPath).ToString().Split([Environment]::NewLine) |
+    Write-Host "Remote:"
+
+    $remote_extensions = @()
+    foreach ($extension_pack in $selected_extension_packs) {
+        $pack_path = "$ORIGIN/settings/extensions/$extension_pack/extensions.json"
+        $json_content = (irm $pack_path).ToString().Split([Environment]::NewLine) |
             Where-Object { $_ -notmatch '^\s*//.*' } |
             Where-Object { $_ -notmatch '/\*.*\*/' } |
             ForEach-Object { $_ -replace '//.*$', '' } |
             Where-Object { $_.Trim() -ne '' }
 
-        $extensions = ($jsonContent -join "`n" | ConvertFrom-Json).recommendations
-        $combinedExtensions += $extensions
-        Write-Host " - ${env}: $($extensions.Count) extensions"
-    } catch {
-        Write-Host ("Error loading " + $envPath + ": " + $_.Exception.Message)
-        continue
-    }
-}
-
-# Eliminar duplicados y crear nuevo objeto JSON
-$uniqueExtensions = $combinedExtensions | Select-Object -Unique | Sort-Object
-
-# Verificar que tenemos extensiones
-Write-Host "`nTotal: $($uniqueExtensions.Count) unique extensions"
-
-# Esperar que el usuario presione una tecla para continuar
-Write-Host "`nPresiona cualquier tecla para continuar..."
-[Console]::ReadKey($true) | Out-Null
-
-# Crear el JSON con formato exacto
-$newJson = "{`n" +
-           "    ""recommendations"": [`n" +
-           (($uniqueExtensions | Where-Object { $_ } | ForEach-Object { "        ""$_""" }) -join ",`n") +
-           "`n    ]`n" +
-           "}"
-
-# Verificar que el JSON no está vacío
-if ([string]::IsNullOrWhiteSpace($newJson)) {
-    Write-Host "Error: JSON generado está vacío"
-    return
-}
-
-# Crear el archivo final
-$selectedIndex = Select-Option -question "Preview of extensions.json:`n$newJson`n`nSave this file?" -menuOptions $yes_no
-if ($selectedIndex -eq 0) {
-    New-Item -ItemType Directory -Force -Path ".vscode" | Out-Null
-    $newJson | Out-File $localExtensionsPath -Encoding UTF8 -NoNewline
-}
-
-# Preguntar si se quiere guardar el workspace
-try {
-    $workspace = irm "$ORIGIN/settings/workspace.code-workspace"
-    if ($workspace) {
-        $selectedIndex = Select-Option -question "There is a workspace file in the server.`nDo you want to see it?" -menuOptions $yes_no
-        if ($selectedIndex -eq 0) {
-            # Obtener workspace del servidor
-            $selectedIndex = Select-Option -question "Preview of workspace.code-workspace:`n$workspace`n`nUse this workspace file?" -menuOptions $yes_no
-            if ($selectedIndex -eq 0) {
-                New-Item -ItemType Directory -Force -Path ".vscode" | Out-Null
-                $workspace | Out-File ".vscode/workspace.code-workspace" -Encoding UTF8 -NoNewline
-            }
+        $extensions = ($json_content -join "`n" | ConvertFrom-Json).recommendations
+        if ($extensions.Count -eq 0) {
+            Write-Host " - ${extension_pack}: $($extensions.Count) extensions (will skip this pack)"
+        } elseif ($extensions.Count -eq 1) {
+            Write-Host " - ${extension_pack}: $($extensions.Count) extension"
+            $remote_extensions += $extensions
+        } else {
+            Write-Host " - ${extension_pack}: $($extensions.Count) extensions"
+            $remote_extensions += $extensions
         }
     }
-} catch {
-    Write-Host "Error loading workspace: $($_.Exception.Message)"
+    return $remote_extensions
+}
+function Save-Extensions {
+    param (
+        [array]$extensions,
+        [string]$extensions_path
+    )
+    $INDENT = "    "
+    $EXTENSION_INDENT = "        "
+
+    $json = "{`n" +
+            "$INDENT""recommendations"": [`n" +
+            (($extensions | Where-Object { $_ } | ForEach-Object { "$EXTENSION_INDENT""$_""" }) -join ",`n") +
+            "`n$INDENT]`n" +
+            "}"
+
+    # Verificar que el JSON no está vacío
+    if ([string]::IsNullOrWhiteSpace($json)) {
+        Write-Host "Error: The generated JSON is empty" -ForegroundColor Red
+        Wait-Porgram
+        return
+    }
+    $options = @("Yes", "No")
+    $selected = Single-Select "Preview of extensions.json:`n`n$json`n`nSave this file?" $options
+    Clear-Host
+    if ($options[$selected] -eq "Yes") {
+        Save-Folder
+        $save_error = Save-File $extensions_path $json
+        if ($save_error) {
+            Write-Host "Error saving the Extensions file.`n+ Path: $extensions_path`n+ Details: $save_error" -ForegroundColor Red
+        } else {
+            Write-Host "Extensions saved successfully" -ForegroundColor Green
+        }
+    } else {
+        Write-Host "Extensions not saved" -ForegroundColor Yellow
+    }
 }
 
-Write-Host "Done."
+#* WORKSPACE
+function Get-Remote-Workspace {
+    $err = $false
+    $workspace = $null
+    try {
+        $workspace = irm "$ORIGIN/settings/workspace.code-workspace"
+    } catch {
+        $err = "Error getting a workspace file from the server: Failed connecting to the server or file not found.`n+ Details: $_"
+    }
+
+    if ($err) {
+        Write-Host "`n$err" -ForegroundColor Red
+        Wait-Porgram
+        return @( $false, $workspace )
+    } else {
+        return @( $true, $workspace )
+    }
+}
+function Use-Workspace {
+    param (
+        [string]$workspace
+    )
+    $options = @("Yes", "No")
+    $selected = Single-Select "There is a workspace file in the server.`nDo you want to load it?" $options
+    if ($options[$selected] -eq "Yes") {
+        $selected = Single-Select "Preview of workspace.code-workspace:`n`n$workspace`n`nUse this workspace file?" $options
+        if ($options[$selected] -eq "Yes") {
+            return $true
+        }
+    }
+    return $false
+}
+function Save-Workspace {
+    param (
+        [string]$workspace
+    )
+    $workspace_name = $null
+    $options = @("Yes", "No")
+
+    Save-Folder
+    while ($workspace_name -eq $null) {
+        Clear-Host
+        Move-Toggle
+        $workspace_name = Read-Host -Prompt "Name your workspace (leave empty to cancel)"
+        Move-Toggle
+        if ([string]::IsNullOrWhiteSpace($workspace_name)) {
+            Clear-Host
+            Write-Host "Workspace creation canceled" -foregroundcolor Yellow
+            return
+        }
+
+        $err = Save-File ".vscode/$workspace_name.code-workspace.tmp" ""
+        if ($err) {
+            $question = "Error creating a Workspace file with name ${workspace_name}: Invalid filename or insufficient permissions.`nDo you want to try again?"
+            $selected = Single-Select $question $options
+            if ($options[$selected] -eq "No") {
+                Clear-Host
+                Write-Host "Workspace creation canceled" -foregroundcolor Yellow
+                return
+            }
+            $workspace_name = $null
+        }
+    }
+
+    Remove-Item -Path ".vscode/$workspace_name.code-workspace.tmp" -Force
+
+    $question = "Remove any other Workspace files in the .vscode folder?"
+    $selected = Single-Select $question $options
+    Clear-Host
+    if ($options[$selected] -eq "Yes") {
+        Write-Host "Removing Workspace files..."
+        try {
+            $old_workspaces = Get-ChildItem -Path ".vscode/" -Filter "*.code-workspace" -File
+            if ($old_workspaces.Count -gt 0) {
+                foreach ($file in $files) {
+                    Remove-Item -Path $file.FullName -Force
+                }
+            }
+            Write-Host "Workspace files removed successfully`n" -ForegroundColor Green
+        } catch {
+            Write-Host "Error removing Workspace files.`n+ Details: $_`n" -ForegroundColor Red
+        }
+    }
+
+    Write-Host "Saving workspace..."
+    $file_data = $workspace.Replace("Workspace Title", $workspace_name)
+    $save_error = Save-File ".vscode/$workspace_name.code-workspace" $file_data
+    if ($save_error) {
+        Write-Host "Error saving the Workspace file.`n+ Path: .vscode/$workspace_name.code-workspace`n+ Details: $save_error" -ForegroundColor Red
+    } else {
+        Write-Host "Workspace saved successfully" -ForegroundColor Green
+    }
+}
+
+
+#* MAIN
+$EXTENSION_ACTION = @{
+    COMBINE = 0
+    REPLACE = 1
+    DO_NOTHING = 2
+}
+function Main {
+    $selected_extension_packs = Select-Extension-Packs
+    Clear-Host
+    if (!$selected_extension_packs) {
+        Write-Host "No extension packs selected" -ForegroundColor Yellow
+        Wait-Porgram
+    } else {
+        $LOCAL_EXTENSIONS_PATH = ".vscode/extensions.json"
+        $selected, $local_extensions = Get-Local-Extensions $LOCAL_EXTENSIONS_PATH
+
+        $extensions = @()
+        switch ($selected) {
+            $EXTENSION_ACTION.DO_NOTHING {
+                return
+            }
+            $EXTENSION_ACTION.REPLACE {
+                $extensions = Get-Remote-Extensions $selected_extension_packs
+            }
+            $EXTENSION_ACTION.COMBINE {
+                $remote_extensions = Get-Remote-Extensions $selected_extension_packs
+                $extensions = $local_extensions + $remote_extensions
+            }
+        }
+
+        $extensions = $extensions | Select-Object -Unique | Sort-Object
+        Write-Host "`nTotal: $($extensions.Count) unique extensions"
+        Wait-Porgram
+
+        Save-Extensions $extensions $LOCAL_EXTENSIONS_PATH
+        Wait-Porgram
+    }
+    $workspace_is_valid, $workspace = Get-Remote-Workspace
+    if ($workspace_is_valid) {
+        $use = Use-Workspace $workspace
+        if (!$use) { Exit-Program }
+        Save-Workspace $workspace
+        Wait-Porgram
+    }
+}
+Move-Toggle
+Main
+Exit-Program
