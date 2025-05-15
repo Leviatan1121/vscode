@@ -292,7 +292,9 @@ function Save-Workspace {
     Save-Folder
     while ($workspace_name -eq $null) {
         Clear-Host
+        Move-Toggle
         $workspace_name = Read-Host -Prompt "Name your workspace (leave empty to cancel)"
+        Move-Toggle
         if ([string]::IsNullOrWhiteSpace($workspace_name)) {
             Clear-Host
             Write-Host "Workspace creation canceled" -foregroundcolor Yellow
@@ -304,6 +306,7 @@ function Save-Workspace {
             $question = "Error creating a Workspace file with name ${workspace_name}: Invalid filename or insufficient permissions.`nDo you want to try again?"
             $selected = Single-Select $question $options
             if ($options[$selected] -eq "No") {
+                Clear-Host
                 Write-Host "Workspace creation canceled" -foregroundcolor Yellow
                 return
             }
@@ -350,8 +353,10 @@ $EXTENSION_ACTION = @{
 }
 function Main {
     $selected_extension_packs = Select-Extension-Packs
+    Clear-Host
     if (!$selected_extension_packs) {
-        Write-Host "No extension packs selected"
+        Write-Host "No extension packs selected" -ForegroundColor Yellow
+        Wait-Porgram
     } else {
         $LOCAL_EXTENSIONS_PATH = ".vscode/extensions.json"
         $selected, $local_extensions = Get-Local-Extensions $LOCAL_EXTENSIONS_PATH
