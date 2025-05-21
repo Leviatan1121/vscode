@@ -1,11 +1,42 @@
 {
     "recommendations": [
         //* COMMON
+        "tombonnike.vscode-status-bar-format-toggle", // Formatting Toggle
         "aaron-bond.better-comments", // Better Comments
         "AykutSarac.jsoncrack-vscode", // JSON Crack
+        "zaaack.markdown-editor", // Markdown Editor
         "ms-vscode.live-server", // Live Preview
-        "PKief.material-icon-theme", // Material Icon Theme
+        "henriqueBruno.github-repository-manager", // GitHub Repository Manager
         "alefragnani.project-manager", // Project Manager
-        "Gruntfuggly.todo-tree" // Todo Tree
+        "assisrMatheus.sidebar-markdown-notes", // Sidebar Markdown Notes
+        "hediet.vscode-drawio", // Draw.io
+        "wraith13.unsaved-files-vscode", // Unsaved Files
+        "alefragnani.bookmarks", // Bookmarks
+        "Gruntfuggly.todo-tree", // Todo Tree
+        "dotenv.dotenv-vscode", // Dotenv
+
+
+        // ICONS
+        "PKief.material-icon-theme", // Material Icon Theme
+
+        // Presentation
+        "marp-team.marp-vscode", // Marp for VS Code //! NEEDS TESTING
+        "adpyke.codesnap", // CodeSnap
+
+        // Collaboration
+        "genuitecllc.codetogether", // CodeTogether Cloud
+
+        // SVG
+        "hall.draw", // Draw
+        "vsce-toolroom.vscode-svg-previewer-toolroom", // SVG Previewer Toolroom
+        "fumifumi0831.svg-to-png-converter", // SVG to PNG Converter
+
+        "jmkrivocapich.drawfolderstructure", // Draw Folder Structure
+
+        "naumovs.color-highlight", // Color Highlight
+
+        //* GITHUB
+        "vsls-contrib.gistfs", // GistPad
+        "henriquebruno.github-repository-manager" // GitHub Repository Manager
     ]
 }

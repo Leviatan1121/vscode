@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        //* HTML
+        "pranaygp.vscode-css-peek", // CSS Peek
+        "zignd.html-css-class-completion", // CSS Class in HTML
+        "qiuqiu-xt.css-flex", // CSS Flex
+        "kamikillerto.vscode-colorizer", // Colorize
+        "chakrounanas.turbo-console-log" // Turbo Console Log
+    ]
+}

@@ -15,6 +15,9 @@
 			"*.h": "c",
 			"*.toml": "ini"
 		},
+		"workbench.editorAssociations": {
+			"*.md": "vscode.markdown.preview.editor"
+		},
 		//* Markup
 		"editor.linkedEditing": true,
 		"html.autoClosingTags": true,
@@ -30,6 +33,7 @@
 			"files.trimTrailingWhitespace": false
 		},
 		//* Font, icons and theme
+		"window.zoomLevel": -1,
 		"editor.fontFamily": "Fira Code",
 		"editor.fontLigatures": true,
 		"editor.fontSize": 16,
@@ -47,6 +51,7 @@
 		"terminal.integrated.gpuAcceleration": "on",
 		"terminal.integrated.hideOnStartup": "always",
 		"terminal.integrated.tabs.focusMode": "singleClick",
+		"terminal.integrated.suggest.enabled": true,
 		//* Status bar
 		"workbench.statusBar.visible": false,
 		//* Tabs
@@ -122,5 +127,29 @@
 		"editor.guides.bracketPairs": true,
 		"editor.bracketPairColorization.enabled": true,
 		"editor.guides.highlightActiveBracketPair": true,
+		//* Extensions
+		// Project Manager
+		"projectManager.git.baseFolders": [
+			"$home\\Documents\\GitHub",
+		],
+		// Turbo Console Log
+		"turboConsoleLog.addSemicolonInTheEnd": true,
+		"turboConsoleLog.includeFilename": true,
+		"turboConsoleLog.includeLineNum": true,
+		"turboConsoleLog.insertEmptyLineAfterLogMessage": true,
+		"turboConsoleLog.logMessagePrefix": "-",
+		"turboConsoleLog.delimiterInsideMessage": "",
+		// Draw Folder Structure
+		"draw.folder.structure.style": "EmojiFun",
+		"draw.folder.structure.exclude": [
+			"**/.vscode",
+			"**/node_modules",
+			"**/.git",
+			"**/dist",
+			"**/*.next",
+			"**/out"
+		],
+		//
+		"svg.preview.autoOpen": true
 	}
 }

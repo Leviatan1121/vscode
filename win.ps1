@@ -38,7 +38,7 @@ function Exit-Program {
     Clear-Host
     Write-Host "Program terminated" -ForegroundColor Green
     Move-Toggle
-    exit
+    Exit 0
 }
 
 #* MENU FUNCTIONS
