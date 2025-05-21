@@ -16,6 +16,7 @@
 			"*.toml": "ini"
 		},
 		"workbench.editorAssociations": {
+			"*.svg": "default",
 			"*.md": "vscode.markdown.preview.editor"
 		},
 		//* Markup
@@ -128,6 +129,8 @@
 		"editor.bracketPairColorization.enabled": true,
 		"editor.guides.highlightActiveBracketPair": true,
 		//* Extensions
+		// HTML CSS Class completion
+		"html-css-class-completion.enableEmmetSupport": true,
 		// Project Manager
 		"projectManager.git.baseFolders": [
 			"$home\\Documents\\GitHub",
@@ -149,7 +152,15 @@
 			"**/*.next",
 			"**/out"
 		],
-		//
+		// CodeSnap
+		"codesnap.showWindowControls": false,
+		"codesnap.shutterAction": "copy",
+		"codesnap.containerPadding": "2em",
+		"codesnap.backgroundColor": "#abb8c3",
+		"codesnap.transparentBackground": false,
+		// Draw
+		"draw.directory": "..\\draw",
+		// SVG Previewer (Toolroom)
 		"svg.preview.autoOpen": true
 	}
 }
