@@ -15,6 +15,7 @@
         "Gruntfuggly.todo-tree", // Todo Tree
         "dotenv.dotenv-vscode", // Dotenv
 
+        "kisstkondoros.vscode-gutter-preview", // Image preview
 
         // ICONS
         "PKief.material-icon-theme", // Material Icon Theme
