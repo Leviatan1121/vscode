@@ -1,6 +1,5 @@
 # VSCode Workspace Configurator
 
-## Description:
 Script for configuring Visual Studio Code with extensions and custom settings.
 
 ## Usage
