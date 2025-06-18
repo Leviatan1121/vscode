@@ -129,6 +129,10 @@
 		"editor.bracketPairColorization.enabled": true,
 		"editor.guides.highlightActiveBracketPair": true,
 		//* Extensions
+		// Live Preview //! UNSURE IF ITS ADDED ON EXTENSIONS
+		"livePreview.hostIP": "127.0.0.1",
+		"livePreview.portNumber": 80,
+		"livePreview.showServerStatusNotifications": true,
 		// HTML CSS Class completion
 		"html-css-class-completion.enableEmmetSupport": true,
 		// Project Manager
