@@ -316,24 +316,6 @@ function Save-Workspace {
 
     Remove-Item -Path ".vscode/$workspace_name.code-workspace.tmp" -Force
 
-    $question = "Remove any other Workspace files in the .vscode folder?"
-    $selected = Single-Select $question $options
-    Clear-Host
-    if ($options[$selected] -eq "Yes") {
-        Write-Host "Removing Workspace files..."
-        try {
-            $old_workspaces = Get-ChildItem -Path ".vscode/" -Filter "*.code-workspace" -File
-            if ($old_workspaces.Count -gt 0) {
-                foreach ($file in $files) {
-                    Remove-Item -Path $file.FullName -Force
-                }
-            }
-            Write-Host "Workspace files removed successfully`n" -ForegroundColor Green
-        } catch {
-            Write-Host "Error removing Workspace files.`n+ Details: $_`n" -ForegroundColor Red
-        }
-    }
-
     Write-Host "Saving workspace..."
     $file_data = $workspace.Replace("Workspace Title", $workspace_name)
     $save_error = Save-File ".vscode/$workspace_name.code-workspace" $file_data
